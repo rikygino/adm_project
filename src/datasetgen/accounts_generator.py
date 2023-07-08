@@ -20,7 +20,7 @@ def generate_random_user(row_id):
 users = [generate_random_user(row_id + 1) for row_id in range(10000)]
 
 # Scrive i dati nel file CSV
-with open('accounts.csv', 'w', newline='') as csvfile:
+with open('../accounts.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(["id", "email", "name", "surname", "birthdate", "sex"])  # Scrive l'intestazione delle colonne
     writer.writerows(users)
