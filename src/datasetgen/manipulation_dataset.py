@@ -10,6 +10,6 @@ def drop_columns(csv_file_path, columns_to_drop):
     print("csv modified")
 
 if __name__ == "__main__":
-    csv_file_path = "../dataset.csv"
-    columns_to_drop = [""]
+    csv_file_path = "dataset.csv"
+    columns_to_drop = ["key","loudness","mode","speechiness","acousticness","valence","time_signature"]
     drop_columns(csv_file_path, columns_to_drop)
