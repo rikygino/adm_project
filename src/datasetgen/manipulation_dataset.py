@@ -38,7 +38,7 @@ def sub_dataset(df):
 if __name__ == "__main__":
     csv_file_path = "tracks_features.csv"
     columns_to_drop = ["track_number", "disc_number", "energy", "key", "loudness", "mode", "speechiness",
-                       "acousticness", "valence", "time_signature", "year", "release_date"]
+                       "acousticness", "valence", "time_signature", "year", "release_date","instrumentalness","liveness","tempo"]
     dataset = pd.read_csv(csv_file_path)
     album_date(dataset)
     drop_columns(dataset, columns_to_drop)
