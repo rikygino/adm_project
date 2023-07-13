@@ -5,7 +5,6 @@ import pandas as pd
 def drop_columns(df, columns_to_drop):
     df.drop(columns=columns_to_drop, inplace=True)
 
-
 def album_date(df):
     # Convert 'release_date' column to datetime with format '%Y'
     df['release_date'] = pd.to_datetime(df['release_date'])
