@@ -1,9 +1,12 @@
 import ast
+import csv
+
 import pandas as pd
 
 
 def drop_columns(df, columns_to_drop):
     df.drop(columns=columns_to_drop, inplace=True)
+
 
 def album_date(df):
     # Convert 'release_date' column to datetime with format '%Y'
@@ -17,9 +20,6 @@ def album_date(df):
 
     # Assign the maximum year to the 'album_year' column
     df['album_year'] = max_year
-
-    df['release_date'] = pd.to_datetime(df['release_date'])
-    df['release_date'] = df['release_date'].dt.strftime("%d-%m-%Y")
     # Return the modified DataFrame
     return df
 
@@ -33,8 +33,6 @@ def standardize_values(value):
         value_list = ast.literal_eval(value)
         if isinstance(value_list, list):
             return ", ".join(value_list)
-        else:
-            return value_list.strip("'")
     except (SyntaxError, ValueError):
         return value
 
@@ -59,25 +57,76 @@ def song_date(df):
     print(filtered_df.shape)
     # Drop rows with duplicate album_id values
     filtered_df = filtered_df.drop_duplicates(subset=['album_id'])
-    filtered_df['release_date'] = pd.to_datetime(filtered_df['release_date'])
-    filtered_df['release_date'] = filtered_df['release_date'].dt.strftime("%m/%d/%Y")
 
     return filtered_df
 
 
-if __name__ == "__main__":
+def manage_dataset():
     csv_file_path = "tracks_features.csv"
-    columns_to_drop = ["track_number", "disc_number", "energy", "key", "loudness", "mode", "speechiness",
+    columns_to_drop = ["artist_ids", "track_number", "disc_number", "energy", "key", "loudness", "mode", "speechiness",
                        "acousticness", "valence", "time_signature", "year", "instrumentalness", "liveness", "tempo"]
     dataset = pd.read_csv(csv_file_path)
+
     dataset = song_date(dataset)
     dataset = album_date(dataset)
+
     drop_columns(dataset, columns_to_drop)
-    # Apply standardization function to 'artists_ids' column and 'artists'
+
+    # Apply standardization function to 'artists'
     dataset['artists'] = dataset['artists'].apply(lambda x: standardize_values(x))
-    dataset['artist_ids'] = dataset['artist_ids'].apply(lambda x: standardize_values(x))
 
     dataset = sub_dataset(dataset)
+
     dataset.to_csv("../spotify_dataset.csv", index=False)
     print("csv modified")
     print(dataset.shape)
+
+
+artists = {"placeholder": 0}
+def artists_to_list(row) -> list[dict]:
+    artists_list = []
+    combined_name = ''.join(row)
+    names = combined_name.split(', ')
+    for name in names:
+        if name in artists:
+            artist_id = artists[name]
+        else:
+            artist_id = max(artists.values()) + 1
+            artists[name] = artist_id
+        artists_list.append({
+            "artist_id": artist_id,
+            "name": name
+        })
+    return artists_list
+
+
+def read_music_data():
+    filepath = '../spotify_dataset.csv'
+    music = []
+    with open(filepath, 'r') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            song = {
+                'id': row['id'],
+                'name': row['name'],
+                'album': row['album'],
+                'album_id': row['album_id'],
+                'artists': artists_to_list(row['artists']),
+                'explicit': row['explicit'],
+                'danceability': row['danceability'],
+                'duration_ms': row['duration_ms'],
+                'release_date': str(row['release_date']),
+                'album_year': row['album_year'],
+            }
+            music.append(song)
+    return music
+
+
+if __name__ == "__main__":
+    manage_dataset()
+    print(read_music_data()[0]['artists'])
+    print(read_music_data()[1]['artists'])
+    print(read_music_data()[2]['artists'])
+    print(read_music_data()[3]['artists'])
+    print(read_music_data()[4]['artists'])
+    print(read_music_data()[5]['artists'])
