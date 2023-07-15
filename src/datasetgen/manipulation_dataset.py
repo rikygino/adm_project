@@ -61,12 +61,17 @@ def song_date(df):
     return filtered_df
 
 
+def song_id(dataset):
+    dataset['id'] = range(1, len(dataset) + 1)
+    return dataset
+
+
 def manage_dataset():
     csv_file_path = "tracks_features.csv"
     columns_to_drop = ["artist_ids", "track_number", "disc_number", "energy", "key", "loudness", "mode", "speechiness",
                        "acousticness", "valence", "time_signature", "year", "instrumentalness", "liveness", "tempo"]
     dataset = pd.read_csv(csv_file_path)
-
+    dataset = song_id(dataset)
     dataset = song_date(dataset)
     dataset = album_date(dataset)
 
@@ -78,8 +83,8 @@ def manage_dataset():
     dataset = sub_dataset(dataset)
 
     dataset.to_csv("../spotify_dataset.csv", index=False)
-    print("csv modified")
-    print(dataset.shape)
+    #print("csv modified")
+    #print(dataset.shape)
 
 
 artists = {"placeholder": 0}
@@ -95,7 +100,7 @@ def artists_to_list(row) -> list[dict]:
             artists[name] = artist_id
         artists_list.append({
             "artist_id": artist_id,
-            "name": name
+            "artist_name": name
         })
     return artists_list
 
@@ -124,9 +129,9 @@ def read_music_data():
 
 if __name__ == "__main__":
     manage_dataset()
-    print(read_music_data()[0]['artists'])
-    print(read_music_data()[1]['artists'])
-    print(read_music_data()[2]['artists'])
-    print(read_music_data()[3]['artists'])
-    print(read_music_data()[4]['artists'])
-    print(read_music_data()[5]['artists'])
+    print(read_music_data()[0])
+    print(read_music_data()[1])
+    print(read_music_data()[2])
+    print(read_music_data()[3])
+    print(read_music_data()[4])
+    print(read_music_data()[5])
