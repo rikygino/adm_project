@@ -53,7 +53,7 @@ def collection_of_song() -> list[dict]:
 CREATE PLAYLIST COLLECTION
 
 """
-def create_a_playlist_random() -> list[dict]:
+def song_of_playlist_random() -> list[dict]:
     max_elements=10
     list_size = random.randint(1, max_elements)
     playlist = []
@@ -86,7 +86,7 @@ def collection_of_playlist() -> list[dict]:
                 'playlist_id': playlist_id,
                 'user_id': row['id'],
                 'username': row['username'],
-                'songs': create_a_playlist_random(),
+                'songs': song_of_playlist_random(),
             }
             playlist_id = playlist_id + 1
             playlist_collection.append(playlist)
