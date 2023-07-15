@@ -44,7 +44,7 @@ def sub_dataset(df):
     # Selezione del 40% degli album
     album_list = df['album'].unique()
     num_albums = len(album_list)
-    num_selected_albums = int(num_albums * 0.03)
+    num_selected_albums = int(num_albums * 0.1)
     selected_albums = df[df['album'].isin(pd.Series(album_list).sample(num_selected_albums))]
 
     # Visualizzazione dei risultati
@@ -90,6 +90,10 @@ def manage_dataset():
 
 
 artists = {"placeholder": 0}
+
+def get_artists():
+    return artists
+
 def artists_to_list(row) -> list[dict]:
     artists_list = []
     combined_name = ''.join(row)
@@ -130,10 +134,6 @@ def read_music_data():
 
 
 if __name__ == "__main__":
-    manage_dataset()
-    print(read_music_data()[0]['artists'])
-    print(read_music_data()[1]['artists'])
-    print(read_music_data()[2]['artists'])
-    print(read_music_data()[3])
-    print(read_music_data()[4])
-    print(read_music_data()[5])
+    #manage_dataset()
+    music = read_music_data()
+    print(artists)

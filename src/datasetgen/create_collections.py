@@ -1,6 +1,7 @@
 import ast
 
 import pandas as pd
+from dateutil.relativedelta import relativedelta
 
 import accounts_generator
 import users_generator
@@ -20,6 +21,9 @@ user_data = users_generator.read_users_from_csv()
 manipulation_dataset.manage_dataset()
 songs_dataset = manipulation_dataset.read_music_data()
 
+artists = manipulation_dataset.get_artists()
+artists.pop("placeholder")
+
 def format_date(date: str) -> dict:
     if date == "": return {}
     millis = datetime.datetime.strptime(date, '%Y-%m-%d').timestamp()*1000
@@ -34,19 +38,37 @@ def collection_of_song() -> list[dict]:
     song_collection = []
     for row in songs_dataset:
         song = {
-        'song_id': row['id'],
-        'title': row['name'],
-        'explicit': row['explicit'],
-        'danceability': row['danceability'],
-        'duration': row['duration_ms'],
-        'release_date': format_date(row['release_date']),
-        'album_id': row['album_id'],
-        'album_name': row['album'],
-        'year': row['album_year'],
-        'madeByArtists': row['artists'],
+            'song_id': row['id'],
+            'title': row['name'],
+            'explicit': row['explicit'],
+            'danceability': row['danceability'],
+            'duration': row['duration_ms'],
+            'release_date': format_date(row['release_date']),
+            'album_id': row['album_id'],
+            'album_name': row['album'],
+            'year': row['album_year'],
+            'madeByArtists': row['artists'],
+            'users': liked_songs_from_users_random()
         }
         song_collection.append(song)
     return song_collection
+
+def liked_songs_from_users_random() -> list[dict]:
+    max_elements=6
+    users_likes = []
+    list_size = random.randint(0, max_elements)
+    for _ in range(list_size):
+        random_id = random.randint(0, len(user_data) - 1)
+        random_user = user_data[random_id]
+        random_likes = {
+            "user_id": random_user['id'],
+            'birthdate': format_date(random_user['birthdate']),
+        }
+        if random_likes in users_likes:
+            continue
+        users_likes.append(random_likes)
+
+    return users_likes
 
 
 """
@@ -54,7 +76,7 @@ CREATE PLAYLIST COLLECTION
 
 """
 def song_of_playlist_random() -> list[dict]:
-    max_elements=10
+    max_elements=6
     list_size = random.randint(1, max_elements)
     playlist = []
 
@@ -184,16 +206,16 @@ def gen_subscription_type() -> str:
     }
     return subscription_types[random.randint(1, 3)]
 
-def collection_of_accounts() -> list[dict]:
+def collection_of_accounts(coll_playlist: list[dict]) -> list[dict]:
     account_collection = []
     for row in account_data:
         account = {
             'account_id': row['id'],
             'email': row['email'],
             'sub_id': gen_subscription_id(row['id']),
-            'start_date': format_date(generate_random_date("2018-01-01","2023-01-01")),
+            'start_date': format_date(generate_random_date("2020-01-01","2023-07-10")),
             'subscription_type': gen_subscription_type(),
-            'users': get_account_users(),
+            'users': get_account_users(coll_playlist),
         }
         account_collection.append(account)
     return account_collection
@@ -204,19 +226,137 @@ CREATE SUBSCRIPTION COLLECTION
 """
 
 
+def get_profile(account_id):
+    for row in account_data:
+        if row['id'] == account_id:
+            name = row['name']
+            surname = row['surname']
+    return name, surname
+
+
+def get_expiration_date(startingdate):
+    value = int(startingdate['$date']['$numberLong'])
+    timestamp = value / 1000
+    dt = datetime.datetime.fromtimestamp(timestamp)
+    #formatted_date = dt.strftime("%Y-%m-%d")
+
+    interval = random.choice(['month', '6months', 'year'])
+
+    if interval == 'month':
+        new_date = dt + datetime.timedelta(days=30)
+    elif interval == '6months':
+        new_date = dt + datetime.timedelta(days=180)
+    elif interval == 'year':
+        new_date = dt + datetime.timedelta(days=365)
+
+    formatted_date = new_date.strftime("%Y-%m-%d")
+    dt = dt.strftime("%Y-%m-%d")
+
+    return dt + " " + formatted_date
+
+def collection_of_subscriptions(coll_accounts: list[dict]) -> list[dict]:
+    subscriptions_collection = []
+    for account in coll_accounts:
+        acc_name, acc_surname = get_profile(account['account_id'])
+        subscription = {
+            'account_id': account['account_id'],
+            'expiration_date': get_expiration_date(account['start_date']),
+            'name': acc_name,
+            'surname': acc_surname,
+        }
+        subscriptions_collection.append(subscription)
+    return subscriptions_collection
+
+
+"""
+CREATE ARTIST COLLECTION
+
+"""
+
+def get_songs_artist(coll_songs: list[dict], id):
+    artists_songs = []
+    for song in coll_songs:
+        for art in song['madeByArtists']:
+            if id == art['artist_id']:
+                song_of_artist = {
+                    'song_id': song['song_id'],
+                    'title': song['title'],
+                    'album_id': song['album_id'],
+                    'album_name': song['album_name'],
+                    'year': song['year'],
+                    'users': song['users']
+                }
+                artists_songs.append(song_of_artist)
+    return artists_songs
+def collection_of_artists(coll_songs: list[dict]) -> list[dict]:
+    artists_collection = []
+    for id in artists.values():
+        artist = {
+            'artist_id': id,
+            'songs': get_songs_artist(coll_songs, id)
+        }
+        artists_collection.append(artist)
+    return artists_collection
+
+"""
+CREATE ALBUM COLLECTION
+
+"""
+
+
+def get_songs_of_album(coll_songs, row):
+    songs_of_album = []
+    for song in coll_songs:
+        if row['album_id'] == song['album_id']:
+            song = {
+                'song_id': song['song_id'],
+                'title': song['title'],
+                'duration': song['duration'],
+                'createdByArtists': song['madeByArtists'],
+            }
+            songs_of_album.append(song)
+
+    return songs_of_album
+
+def collection_of_albums(coll_songs: list[dict]) -> list[dict]:
+    albums_collection = []
+    for row in songs_dataset:
+        album = {
+            'album_id': row['album_id'],
+            'songs': get_songs_of_album(coll_songs, row)
+        }
+        albums_collection.append(album)
+    return albums_collection
+
+
+
 
 if __name__ == "__main__":
-    #song_collection = collection_of_song()
-    #print(song_collection)
+    song_collection = collection_of_song()
+    #for i in range(0, 3):
+    #    print(song_collection[i])
 
-    #print(create_a_playlist_random())
-
-    playlist_collection = collection_of_playlist()
-    for i in range(0,100):
-        print(playlist_collection[i])
+    #playlist_collection = collection_of_playlist()
+    #for i in range(0,100):
+    #    print(playlist_collection[i])
 
     #user_collection = collection_of_users(playlist_collection)
     #print(user_collection)
 
+    #account_collection = collection_of_accounts(playlist_collection)
+    #for i in range(0, 3):
+        #print(account_collection[i])
+
+    #subscriptions_collection = collection_of_subscriptions(account_collection)
+    #for i in range(0, 3):
+    #    print(subscriptions_collection[i])
+
+    #artists_collection = collection_of_artists(song_collection)
+    #for i in range(0, 3):
+    #    print(artists_collection[i])
+
+    albums_collection = collection_of_albums(song_collection)
+    for i in range(0, 30):
+        print(albums_collection[i])
 
 
