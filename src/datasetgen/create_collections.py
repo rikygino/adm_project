@@ -82,12 +82,10 @@ def collection_of_playlist() -> list[dict]:
     for row in user_data:
         number_of_playlists = random.randint(0, max_elements)
         for index in range(number_of_playlists):
-            random_user_id = random.randint(1, len(user_data) - 1)
-            random_user = user_data[random_user_id-1]['username']
             playlist = {
                 'playlist_id': playlist_id,
-                'user_id': random_user_id,
-                'username': random_user,
+                'user_id': row['id'],
+                'username': row['username'],
                 'songs': create_a_playlist_random(),
             }
             playlist_id = playlist_id + 1
@@ -214,10 +212,11 @@ if __name__ == "__main__":
     #print(create_a_playlist_random())
 
     playlist_collection = collection_of_playlist()
-    #print(playlist_collection[0])
+    for i in range(0,100):
+        print(playlist_collection[i])
 
-    user_collection = collection_of_users(playlist_collection)
-    print(user_collection)
+    #user_collection = collection_of_users(playlist_collection)
+    #print(user_collection)
 
 
 
