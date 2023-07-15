@@ -1,5 +1,6 @@
 import ast
 import csv
+import json
 
 import pandas as pd
 
@@ -33,6 +34,8 @@ def standardize_values(value):
         value_list = ast.literal_eval(value)
         if isinstance(value_list, list):
             return ", ".join(value_list)
+        else:
+            return value_list.strip("'")
     except (SyntaxError, ValueError):
         return value
 
@@ -45,7 +48,7 @@ def sub_dataset(df):
     selected_albums = df[df['album'].isin(pd.Series(album_list).sample(num_selected_albums))]
 
     # Visualizzazione dei risultati
-    print(selected_albums)
+    #print(selected_albums)
 
     return selected_albums
 
@@ -54,7 +57,7 @@ def song_date(df):
     # Filter rows based on release_date length less than 10 characters
     mask = df['release_date'].str.len() == 10
     filtered_df = df[mask]
-    print(filtered_df.shape)
+    #print(filtered_df.shape)
     # Drop rows with duplicate album_id values
     filtered_df = filtered_df.drop_duplicates(subset=['album_id'])
 
@@ -64,7 +67,6 @@ def song_date(df):
 def song_id(dataset):
     dataset['id'] = range(1, len(dataset) + 1)
     return dataset
-
 
 def manage_dataset():
     csv_file_path = "tracks_features.csv"
@@ -129,9 +131,9 @@ def read_music_data():
 
 if __name__ == "__main__":
     manage_dataset()
-    print(read_music_data()[0])
-    print(read_music_data()[1])
-    print(read_music_data()[2])
+    print(read_music_data()[0]['artists'])
+    print(read_music_data()[1]['artists'])
+    print(read_music_data()[2]['artists'])
     print(read_music_data()[3])
     print(read_music_data()[4])
     print(read_music_data()[5])
