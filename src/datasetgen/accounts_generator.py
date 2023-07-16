@@ -15,13 +15,11 @@ def generate_random_user(row_id):
     return [row_id, email, first_name, last_name, birthdate]
 
 def generate_accounts():
-    # Genera 10.000 utenti casuali
-    users = [generate_random_user(row_id + 1) for row_id in range(3000)]
+    users = [generate_random_user(row_id + 1) for row_id in range(2000)]
 
-    # Scrive i dati nel file CSV
     with open('../accounts.csv', 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(["id", "email", "name", "surname", "birthdate"])  # Scrive l'intestazione delle colonne
+        writer.writerow(["id", "email", "name", "surname", "birthdate"])
         writer.writerows(users)
 def read_account_from_csv():
     filepath = '../accounts.csv'
@@ -37,8 +35,9 @@ def read_account_from_csv():
                 'birthdate': row['birthdate'],
             }
             accounts.append(account)
+    #print("Accounts shape:", accounts.shape)
     return accounts
 
 if __name__ == "__main__":
     generate_accounts()
-    print(read_account_from_csv())
+    #print(read_account_from_csv())
