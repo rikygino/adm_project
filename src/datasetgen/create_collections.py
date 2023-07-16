@@ -54,7 +54,7 @@ def collection_of_song() -> list[dict]:
 
 
 def liked_songs_from_users_random() -> list[dict]:
-    max_elements = 2
+    max_elements = 15
     users_likes = []
     list_size = random.randint(0, max_elements)
     for _ in range(list_size):
@@ -78,7 +78,7 @@ CREATE PLAYLIST COLLECTION
 
 
 def song_of_playlist_random() -> list[dict]:
-    max_elements = 3
+    max_elements = 10
     list_size = random.randint(1, max_elements)
     playlist = []
 
@@ -102,7 +102,7 @@ playlists_group = {"placeholder": 0}
 
 
 def collection_of_playlist() -> list[dict]:
-    max_elements = 3
+    max_elements = 5
     playlist_id = 0
     playlist_collection = []
     for row in user_data:

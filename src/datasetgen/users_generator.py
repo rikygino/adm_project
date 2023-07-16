@@ -11,7 +11,7 @@ def generate_random_user(row_id):
     return [user_id,username,birthday]
 
 def generate_users():
-    users = [(generate_random_user(row_id + 1)) for row_id in range(20)]
+    users = [(generate_random_user(row_id + 1)) for row_id in range(5000)]
 
     with open('../users.csv', 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
@@ -30,10 +30,11 @@ def read_users_from_csv():
                 'birthdate': row['birthdate']
             }
             users.append(user)
+    #print("Users shape:", users.shape)
     return users
 
 if __name__ == "__main__":
     generate_users()
-    print(read_users_from_csv())
+    #print(read_users_from_csv())
 
 

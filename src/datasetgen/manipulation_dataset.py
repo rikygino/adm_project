@@ -45,7 +45,7 @@ def sub_dataset(df):
     # Selezione del 30% degli album
     album_list = df['album'].unique()
     num_albums = len(album_list)
-    num_selected_albums = int(3) #np.ceil(num_albums * 0.0001)
+    num_selected_albums = int(np.ceil(num_albums * 0.001))
     selected_albums = pd.Series(album_list).sample(num_selected_albums)
 
     # Filtraggio delle canzoni degli album selezionati
@@ -83,7 +83,7 @@ def manage_dataset():
 
     dataset.to_csv("../spotify_dataset.csv", index=False)
     #print("csv modified")
-    print(dataset.shape)
+    print("Songs shape:", dataset.shape)
 
 
 artists = {"placeholder": 0}
