@@ -66,22 +66,8 @@ def song_id(dataset):
     return dataset
 
 def mod(df):
-    counter = 0
-    unique_album_ids = set()
-
-    for row in df['album_id']:
-        valore_da_cancellare = row
-        if valore_da_cancellare not in unique_album_ids:
-            unique_album_ids.add(valore_da_cancellare)
-            counter += 1
-
-    index = 1
-    for row in df['album_id']:
-        for ids in unique_album_ids:
-            if row == ids:
-                row = index
-        index = index + 1
-
+    album_id_mapping = {album_id: i for i, album_id in enumerate(df['album_id'].unique())}
+    df['album_id'] = df['album_id'].replace(album_id_mapping)
     return df
 
 def manage_dataset():
@@ -92,8 +78,6 @@ def manage_dataset():
     dataset = sub_dataset(dataset)
     dataset = song_id(dataset)
     dataset = mod(dataset)
-    print(dataset['album_id'].head())
-    print(dataset['album_id'].describe())
     dataset = song_date(dataset)
     dataset = album_date(dataset)
 
@@ -103,7 +87,6 @@ def manage_dataset():
     dataset['artists'] = dataset['artists'].apply(lambda x: standardize_values(x))
 
     dataset.to_csv("../spotify_dataset.csv", index=False)
-    #print("csv modified")
     print("Songs shape:", dataset.shape)
 
 
