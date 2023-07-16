@@ -229,6 +229,7 @@ def get_account_users(coll_users: list[dict]) -> list[dict]:
     max_users = 2
     account_user_number = random.randint(min_users, max_users)
     account_users = []
+    print(len(user_data))
     for _ in range(account_user_number):
         random_user_index = random.randint(0, len(coll_users) - 1)
         random_user = coll_users.pop(random_user_index)
@@ -238,6 +239,7 @@ def get_account_users(coll_users: list[dict]) -> list[dict]:
             'playlists': random_user['playlists'],
         }
         account_users.append(account_user)
+    print(len(user_data))
 
     return account_users
 
@@ -360,7 +362,7 @@ CREATE ALBUM COLLECTION
 def get_songs_of_album(coll_songs, row):
     songs_of_album = []
     for song in coll_songs:
-        if row['album_id'] == song['album_id']:
+        if row == song['album_id']:
             song = {
                 'song_id': song['song_id'],
                 'title': song['title'],
@@ -374,9 +376,10 @@ def get_songs_of_album(coll_songs, row):
 
 def collection_of_albums(coll_songs: list[dict]) -> list[dict]:
     albums_collection = []
-    for row in songs_dataset:
+    album_list = songs_dataset['album_id'].unique()
+    for row in album_list:
         album = {
-            'album_id': row['album_id'],
+            'album_id': row,
             'songs': get_songs_of_album(coll_songs, row)
         }
         albums_collection.append(album)
