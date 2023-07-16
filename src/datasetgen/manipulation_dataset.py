@@ -1,7 +1,7 @@
 import ast
 import csv
+import numpy as np
 import json
-
 import pandas as pd
 
 
@@ -40,17 +40,20 @@ def standardize_values(value):
         return value
 
 
+
 def sub_dataset(df):
-    # Selezione del 40% degli album
+    # Selezione del 30% degli album
     album_list = df['album'].unique()
     num_albums = len(album_list)
-    num_selected_albums = int(num_albums * 0.03)
-    selected_albums = df[df['album'].isin(pd.Series(album_list).sample(num_selected_albums))]
+    num_selected_albums = int(np.ceil(num_albums * 0.3))
+    selected_albums = pd.Series(album_list).sample(num_selected_albums)
 
-    # Visualizzazione dei risultati
-    #print(selected_albums)
+    # Filtraggio delle canzoni degli album selezionati
+    selected_songs = df[df['album'].isin(selected_albums)]
 
-    return selected_albums
+    return selected_songs
+
+
 
 
 def song_date(df):
@@ -59,7 +62,7 @@ def song_date(df):
     filtered_df = df[mask]
     #print(filtered_df.shape)
     # Drop rows with duplicate album_id values
-    filtered_df = filtered_df.drop_duplicates(subset=['album_id'])
+    #filtered_df = filtered_df.drop_duplicates(subset=['album_id'])
 
     return filtered_df
 
@@ -73,16 +76,19 @@ def manage_dataset():
     columns_to_drop = ["artist_ids", "track_number", "disc_number", "energy", "key", "loudness", "mode", "speechiness",
                        "acousticness", "valence", "time_signature", "year", "instrumentalness", "liveness", "tempo"]
     dataset = pd.read_csv(csv_file_path)
+    dataset = sub_dataset(dataset)
+    print('BBBBBB', dataset)
     dataset = song_id(dataset)
+    print('CCCCCC', dataset)
     dataset = song_date(dataset)
+    print('DDDDDD', dataset)
     dataset = album_date(dataset)
-
+    print('EEEEEE', dataset)
     drop_columns(dataset, columns_to_drop)
+
 
     # Apply standardization function to 'artists'
     dataset['artists'] = dataset['artists'].apply(lambda x: standardize_values(x))
-
-    dataset = sub_dataset(dataset)
 
     dataset.to_csv("../spotify_dataset.csv", index=False)
     #print("csv modified")
@@ -132,8 +138,5 @@ def read_music_data():
 if __name__ == "__main__":
     manage_dataset()
     print(read_music_data()[0]['artists'])
-    print(read_music_data()[1]['artists'])
-    print(read_music_data()[2]['artists'])
-    print(read_music_data()[3])
-    print(read_music_data()[4])
-    print(read_music_data()[5])
+
+    print('DONE')
