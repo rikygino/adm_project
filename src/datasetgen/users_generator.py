@@ -11,7 +11,7 @@ def generate_random_user(row_id):
     return [user_id,username,birthday]
 
 def generate_users():
-    users = [(generate_random_user(row_id + 1)) for row_id in range(12000)]
+    users = [(generate_random_user(row_id + 1)) for row_id in range(20)]
 
     with open('../users.csv', 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)

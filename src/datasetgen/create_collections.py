@@ -1,8 +1,4 @@
-import ast
 import time
-
-import pandas as pd
-from dateutil.relativedelta import relativedelta
 
 import accounts_generator
 import users_generator
@@ -10,7 +6,6 @@ import manipulation_dataset
 import random
 import datetime
 import json
-
 
 # creating and initializing the variables
 accounts_generator.generate_accounts()
@@ -25,15 +20,18 @@ songs_dataset = manipulation_dataset.read_music_data()
 artists = manipulation_dataset.get_artists()
 artists.pop("placeholder")
 
+
 def format_date(date: str) -> dict:
     if date == "": return {}
-    millis = datetime.datetime.strptime(date, '%Y-%m-%d').timestamp()*1000
+    millis = datetime.datetime.strptime(date, '%Y-%m-%d').timestamp() * 1000
     return {"$date": {"$numberLong": str(int(millis))}}
+
 
 """
 CREATE SONG COLLECTION
 
 """
+
 
 def collection_of_song() -> list[dict]:
     song_collection = []
@@ -54,8 +52,9 @@ def collection_of_song() -> list[dict]:
         song_collection.append(song)
     return song_collection
 
+
 def liked_songs_from_users_random() -> list[dict]:
-    max_elements=6
+    max_elements = 2
     users_likes = []
     list_size = random.randint(0, max_elements)
     for _ in range(list_size):
@@ -76,8 +75,10 @@ def liked_songs_from_users_random() -> list[dict]:
 CREATE PLAYLIST COLLECTION
 
 """
+
+
 def song_of_playlist_random() -> list[dict]:
-    max_elements=6
+    max_elements = 3
     list_size = random.randint(1, max_elements)
     playlist = []
 
@@ -96,10 +97,12 @@ def song_of_playlist_random() -> list[dict]:
 
     return playlist
 
+
 playlists_group = {"placeholder": 0}
 
+
 def collection_of_playlist() -> list[dict]:
-    max_elements = 6
+    max_elements = 3
     playlist_id = 0
     playlist_collection = []
     for row in user_data:
@@ -117,11 +120,11 @@ def collection_of_playlist() -> list[dict]:
     return playlist_collection
 
 
-
 """
 CREATE USERS COLLECTION
 
 """
+
 
 def get_songs(playlist) -> list[dict]:
     songs_ids = []
@@ -134,11 +137,12 @@ def get_songs(playlist) -> list[dict]:
 
     return songs_ids
 
+
 def playlist_of_users_random(coll_playlist: list[dict], row) -> list[dict]:
     playlist_of_users = []
     for playlist in coll_playlist:
         if playlist['user_id'] == row['id']:
-            name_playlist = playlist['username']+"_"+str(playlist['playlist_id'])
+            name_playlist = playlist['username'] + "_" + str(playlist['playlist_id'])
             playlist_user = {
                 'playlist_id': playlist['playlist_id'],
                 'playlist_name': name_playlist,
@@ -148,13 +152,30 @@ def playlist_of_users_random(coll_playlist: list[dict], row) -> list[dict]:
 
     return playlist_of_users
 
-def collection_of_users(coll_playlist: list[dict]) -> list[dict]:
+
+def get_liked_songs_from_user(coll_songs: list[dict], row) -> list[dict]:
+    liked_songs = []
+    for song in coll_songs:
+        for id_user in song['users']:
+            if row['id'] == id_user['user_id']:
+                song_liked = {
+                    'song_id': song['song_id'],
+                    'title': song['title'],
+                }
+                liked_songs.append(song_liked)
+
+    return liked_songs
+
+
+
+def collection_of_users(coll_playlist: list[dict], coll_songs: list[dict]) -> list[dict]:
     user_collection = []
 
     for row in user_data:
         user = {
             'user_id': row['id'],
             'playlists': playlist_of_users_random(coll_playlist, row),
+            'likedSongs': get_liked_songs_from_user(coll_songs, row),
         }
         user_collection.append(user)
 
@@ -165,6 +186,8 @@ def collection_of_users(coll_playlist: list[dict]) -> list[dict]:
 CREATE ACCOUNT COLLECTION
 
 """
+
+
 def generate_random_date(from_date: str, to_date: str) -> str:
     start_date = datetime.datetime.strptime(from_date.strip(), '%Y-%m-%d')
     end_date = datetime.datetime.strptime(to_date.strip(), '%Y-%m-%d')
@@ -177,47 +200,74 @@ def generate_random_date(from_date: str, to_date: str) -> str:
 
     return random_date.strftime('%Y-%m-%d')
 
-def gen_subscription_id(account_id: int) -> int:
-    return (7*account_id+1) % len(account_data)
 
-def get_account_users(coll_playlist: list[dict]) -> list[dict]:
+def gen_subscription_id(account_id: int) -> int:
+    return (7 * account_id + 1) % len(account_data)
+
+
+def assign_left_users(coll_user_copy: list[dict], account_collection: list[dict]):
+    while len(coll_user_copy) > 0:
+        for user in coll_user_copy:
+            account_user = {
+                "user_id": user['user_id'],
+                "username": get_username(user['user_id']),
+                "playlists": user['playlists'],
+            }
+            account_random = random.choice(account_collection)
+            if len(account_random['users']) < 4:
+                account_random['users'].append(account_user)
+                coll_user_copy.remove(user)
+
+def get_username(user_id):
+    for user in user_data:
+        if user['id'] == user_id:
+            return user['username']
+
+
+def get_account_users(coll_users: list[dict]) -> list[dict]:
     min_users = 1
-    max_users = 4
+    max_users = 2
     account_user_number = random.randint(min_users, max_users)
     account_users = []
     for _ in range(account_user_number):
-        random_user_index = random.randint(0, len(user_data) - 1)
-        random_user = user_data.pop(random_user_index)
+        random_user_index = random.randint(0, len(coll_users) - 1)
+        random_user = coll_users.pop(random_user_index)
         account_user = {
-            "userId": random_user['id'],
-            "username": random_user['username'],
-            "playlists": playlist_of_users_random(coll_playlist, random_user)
+            'user_id': random_user['user_id'],
+            'username': get_username(random_user['user_id']),
+            'playlists': random_user['playlists'],
         }
         account_users.append(account_user)
 
     return account_users
 
+
 def gen_subscription_type() -> str:
     subscription_types = {
         1: "Free",
-        2: "Duo",
+        2: "Standard",
         3: "Premium",
     }
     return subscription_types[random.randint(1, 3)]
 
-def collection_of_accounts(coll_playlist: list[dict]) -> list[dict]:
+
+def collection_of_accounts(coll_users: list[dict]) -> list[dict]:
+    coll_user_copy = coll_users.copy()
     account_collection = []
     for row in account_data:
         account = {
             'account_id': row['id'],
             'email': row['email'],
             'sub_id': gen_subscription_id(row['id']),
-            'start_date': format_date(generate_random_date("2020-01-01","2023-07-10")),
+            'start_date': format_date(generate_random_date("2020-01-01", "2023-07-10")),
             'subscription_type': gen_subscription_type(),
-            'users': get_account_users(coll_playlist),
+            'users': get_account_users(coll_user_copy),
         }
         account_collection.append(account)
+    assign_left_users(coll_user_copy, account_collection)
+
     return account_collection
+
 
 """
 CREATE SUBSCRIPTION COLLECTION
@@ -237,7 +287,6 @@ def get_expiration_date(startingdate):
     value = int(startingdate['$date']['$numberLong'])
     timestamp = value / 1000
     dt = datetime.datetime.fromtimestamp(timestamp)
-    #formatted_date = dt.strftime("%Y-%m-%d")
 
     interval = random.choice(['month', '6months', 'year'])
 
@@ -252,6 +301,7 @@ def get_expiration_date(startingdate):
     dt = dt.strftime("%Y-%m-%d")
 
     return dt + " " + formatted_date
+
 
 def collection_of_subscriptions(coll_accounts: list[dict]) -> list[dict]:
     subscriptions_collection = []
@@ -272,6 +322,7 @@ CREATE ARTIST COLLECTION
 
 """
 
+
 def get_songs_artist(coll_songs: list[dict], id):
     artists_songs = []
     for song in coll_songs:
@@ -287,6 +338,8 @@ def get_songs_artist(coll_songs: list[dict], id):
                 }
                 artists_songs.append(song_of_artist)
     return artists_songs
+
+
 def collection_of_artists(coll_songs: list[dict]) -> list[dict]:
     artists_collection = []
     for id in artists.values():
@@ -296,6 +349,7 @@ def collection_of_artists(coll_songs: list[dict]) -> list[dict]:
         }
         artists_collection.append(artist)
     return artists_collection
+
 
 """
 CREATE ALBUM COLLECTION
@@ -317,6 +371,7 @@ def get_songs_of_album(coll_songs, row):
 
     return songs_of_album
 
+
 def collection_of_albums(coll_songs: list[dict]) -> list[dict]:
     albums_collection = []
     for row in songs_dataset:
@@ -327,89 +382,76 @@ def collection_of_albums(coll_songs: list[dict]) -> list[dict]:
         albums_collection.append(album)
     return albums_collection
 
-def JSONcollection(collection: list[dict], filename: str) -> None:
+
+def convert_collection_to_json(collection: list[dict], filename: str) -> None:
     with open(filename, 'w') as jsonfile:
         jsonfile.write(json.dumps(collection))
 
 
 def calculate_execution_time(start_time, end_time):
-    execution_time = end_time - start_time  # Calculate the execution time in seconds
+    execution_time = end_time - start_time
 
-    minutes = int(execution_time // 60)  # Calculate the minutes
-    seconds = int(execution_time % 60)  # Calculate the remaining seconds
+    minutes = int(execution_time // 60)
+    seconds = int(execution_time % 60)
 
     return minutes, seconds
+
+
+def collections_to_json(songs_collection, playlists_collection, users_collection, accounts_collection,
+                        subscriptions_collection, artists_collection, albums_collection):
+
+    print("Conversions to JSON started!")
+    convert_collection_to_json(songs_collection, "songs_collection.json")
+    convert_collection_to_json(playlists_collection, "playlists_collection.json")
+    convert_collection_to_json(users_collection, "users_collection.json")
+    convert_collection_to_json(accounts_collection, "accounts_collection.json")
+    convert_collection_to_json(subscriptions_collection, "subscriptions_collection.json")
+    convert_collection_to_json(artists_collection, "artists_collection.json")
+    convert_collection_to_json(albums_collection, "albums_collection.json")
+    print("Conversions to JSON done!")
 
 if __name__ == "__main__":
     print("Creating songs_collection")
     start_time1 = time.time()
     songs_collection = collection_of_song()
     end_time1 = time.time()
-    print("Created songs_collection, time:", calculate_execution_time(start_time1,end_time1))
+    print("--> songs_collection created with time:", calculate_execution_time(start_time1, end_time1))
 
     print("Creating playlists_collection")
     start_time2 = time.time()
     playlists_collection = collection_of_playlist()
     end_time2 = time.time()
-    print("Created playlists_collection, time:", calculate_execution_time(start_time2,end_time2))
+    print("--> playlists_collection created with time:", calculate_execution_time(start_time2, end_time2))
 
     print("Creating users_collection")
     start_time3 = time.time()
-    users_collection = collection_of_users(playlists_collection)
+    users_collection = collection_of_users(playlists_collection, songs_collection)
     end_time3 = time.time()
-    print("Created users_collection, time:", calculate_execution_time(start_time3,end_time3))
+    print("--> users_collection created with time:", calculate_execution_time(start_time3, end_time3))
 
     print("Creating accounts_collection")
     start_time4 = time.time()
-    accounts_collection = collection_of_accounts(playlists_collection)
-    #for i in range(0, 3):
-        #print(account_collection[i])
+    accounts_collection = collection_of_accounts(users_collection)
     end_time4 = time.time()
-    print("Created accounts_collection, time:", calculate_execution_time(start_time4,end_time4))
+    print("--> accounts_collection created with time:", calculate_execution_time(start_time4, end_time4))
 
     print("Creating subscriptions_collection")
     start_time5 = time.time()
     subscriptions_collection = collection_of_subscriptions(accounts_collection)
     end_time5 = time.time()
-    print("Created subscriptions_collection, time:", calculate_execution_time(start_time5,end_time5))
+    print("--> subscriptions_collection created with time:", calculate_execution_time(start_time5, end_time5))
 
     print("Creating artists_collection")
     start_time6 = time.time()
     artists_collection = collection_of_artists(songs_collection)
     end_time6 = time.time()
-    print("Created artists_collection, time:", calculate_execution_time(start_time6,end_time6))
+    print("--> artists_collection created with time:", calculate_execution_time(start_time6, end_time6))
 
     print("Creating albums_collection")
     start_time7 = time.time()
     albums_collection = collection_of_albums(songs_collection)
-    for i in range(len(albums_collection)):
-        print(albums_collection[i])
     end_time7 = time.time()
-    print("Created albums_collection, time:", calculate_execution_time(start_time7,end_time7))
+    print("--> albums_collection created with time:", calculate_execution_time(start_time7, end_time7))
 
-    print("Conversions to JSON started!")
-    JSONcollection(songs_collection, "songs_collection.json")
-    print("Conversion to JSON: songs_collection")
-
-    JSONcollection(playlists_collection, "playlists_collection.json")
-    print("Conversion to JSON: playlists_collection")
-
-    JSONcollection(users_collection, "users_collection.json")
-    print("Conversion to JSON: users_collection")
-
-    JSONcollection(accounts_collection, "accounts_collection.json")
-    print("Conversion to JSON: accounts_collection")
-
-    JSONcollection(subscriptions_collection, "subscriptions_collection.json")
-    print("Conversion to JSON: subscriptions_collection")
-
-    JSONcollection(artists_collection, "artists_collection.json")
-    print("Conversion to JSON: artists_collection")
-
-    JSONcollection(albums_collection, "albums_collection.json")
-    print("Conversion to JSON: albums_collection")
-
-
-    print("Conversions to JSON done!")
-
-
+    collections_to_json(songs_collection, playlists_collection, users_collection,
+                        accounts_collection, subscriptions_collection, artists_collection, albums_collection)
