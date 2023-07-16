@@ -1,5 +1,7 @@
 import time
 
+import pandas as pd
+
 import accounts_generator
 import users_generator
 import manipulation_dataset
@@ -19,7 +21,6 @@ songs_dataset = manipulation_dataset.read_music_data()
 
 artists = manipulation_dataset.get_artists()
 artists.pop("placeholder")
-
 
 def format_date(date: str) -> dict:
     if date == "": return {}
@@ -54,7 +55,7 @@ def collection_of_song() -> list[dict]:
 
 
 def liked_songs_from_users_random() -> list[dict]:
-    max_elements = 6
+    max_elements = 5
     users_likes = []
     list_size = random.randint(0, max_elements)
     for _ in range(list_size):
@@ -78,7 +79,7 @@ CREATE PLAYLIST COLLECTION
 
 
 def song_of_playlist_random() -> list[dict]:
-    max_elements = 6
+    max_elements = 5
     list_size = random.randint(1, max_elements)
     playlist = []
 
@@ -229,7 +230,6 @@ def get_account_users(coll_users: list[dict]) -> list[dict]:
     max_users = 2
     account_user_number = random.randint(min_users, max_users)
     account_users = []
-    print(len(user_data))
     for _ in range(account_user_number):
         random_user_index = random.randint(0, len(coll_users) - 1)
         random_user = coll_users.pop(random_user_index)
@@ -239,8 +239,6 @@ def get_account_users(coll_users: list[dict]) -> list[dict]:
             'playlists': random_user['playlists'],
         }
         account_users.append(account_user)
-    print(len(user_data))
-
     return account_users
 
 
@@ -373,11 +371,32 @@ def get_songs_of_album(coll_songs, row):
 
     return songs_of_album
 
+def unique_vals(df):
+    counter = 0
+    unique_album_ids = set()
+
+    for row in df:
+        valore_da_cancellare = row['album_id']
+        if valore_da_cancellare not in unique_album_ids:
+            unique_album_ids.add(valore_da_cancellare)
+            counter += 1
+
+    index = 1
+    for row in df:
+        for ids in unique_album_ids:
+            if row['album_id'] == ids:
+                row['album_id'] = index
+        index = index +1
+
+    return counter
 
 def collection_of_albums(coll_songs: list[dict]) -> list[dict]:
     albums_collection = []
-    album_list = songs_dataset['album_id'].unique()
-    for row in album_list:
+    album_list = []
+    popping = songs_dataset.copy()
+    total_albums = unique_vals(popping)
+
+    for row in range(total_albums):
         album = {
             'album_id': row,
             'songs': get_songs_of_album(coll_songs, row)

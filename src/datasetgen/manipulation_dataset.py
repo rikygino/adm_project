@@ -61,10 +61,28 @@ def song_date(df):
 
     return filtered_df
 
-
 def song_id(dataset):
-    dataset['id'] = range(1, len(dataset) + 1)
+    dataset['id'] = range(1, len(dataset)+1)
     return dataset
+
+def mod(df):
+    counter = 0
+    unique_album_ids = set()
+
+    for row in df['album_id']:
+        valore_da_cancellare = row
+        if valore_da_cancellare not in unique_album_ids:
+            unique_album_ids.add(valore_da_cancellare)
+            counter += 1
+
+    index = 1
+    for row in df['album_id']:
+        for ids in unique_album_ids:
+            if row == ids:
+                row = index
+        index = index + 1
+
+    return df
 
 def manage_dataset():
     csv_file_path = "tracks_features.csv"
@@ -73,6 +91,9 @@ def manage_dataset():
     dataset = pd.read_csv(csv_file_path)
     dataset = sub_dataset(dataset)
     dataset = song_id(dataset)
+    dataset = mod(dataset)
+    print(dataset['album_id'].head())
+    print(dataset['album_id'].describe())
     dataset = song_date(dataset)
     dataset = album_date(dataset)
 
