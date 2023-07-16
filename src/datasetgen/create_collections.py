@@ -1,4 +1,5 @@
 import ast
+import time
 
 import pandas as pd
 from dateutil.relativedelta import relativedelta
@@ -196,8 +197,6 @@ def get_account_users(coll_playlist: list[dict]) -> list[dict]:
 
     return account_users
 
-
-
 def gen_subscription_type() -> str:
     subscription_types = {
         1: "Free",
@@ -328,35 +327,89 @@ def collection_of_albums(coll_songs: list[dict]) -> list[dict]:
         albums_collection.append(album)
     return albums_collection
 
+def JSONcollection(collection: list[dict], filename: str) -> None:
+    with open(filename, 'w') as jsonfile:
+        jsonfile.write(json.dumps(collection))
 
 
+def calculate_execution_time(start_time, end_time):
+    execution_time = end_time - start_time  # Calculate the execution time in seconds
+
+    minutes = int(execution_time // 60)  # Calculate the minutes
+    seconds = int(execution_time % 60)  # Calculate the remaining seconds
+
+    return minutes, seconds
 
 if __name__ == "__main__":
-    song_collection = collection_of_song()
-    #for i in range(0, 3):
-    #    print(song_collection[i])
+    print("Creating songs_collection")
+    start_time1 = time.time()
+    songs_collection = collection_of_song()
+    end_time1 = time.time()
+    print("Created songs_collection, time:", calculate_execution_time(start_time1,end_time1))
 
-    #playlist_collection = collection_of_playlist()
-    #for i in range(0,100):
-    #    print(playlist_collection[i])
+    print("Creating playlists_collection")
+    start_time2 = time.time()
+    playlists_collection = collection_of_playlist()
+    end_time2 = time.time()
+    print("Created playlists_collection, time:", calculate_execution_time(start_time2,end_time2))
 
-    #user_collection = collection_of_users(playlist_collection)
-    #print(user_collection)
+    print("Creating users_collection")
+    start_time3 = time.time()
+    users_collection = collection_of_users(playlists_collection)
+    end_time3 = time.time()
+    print("Created users_collection, time:", calculate_execution_time(start_time3,end_time3))
 
-    #account_collection = collection_of_accounts(playlist_collection)
+    print("Creating accounts_collection")
+    start_time4 = time.time()
+    accounts_collection = collection_of_accounts(playlists_collection)
     #for i in range(0, 3):
         #print(account_collection[i])
+    end_time4 = time.time()
+    print("Created accounts_collection, time:", calculate_execution_time(start_time4,end_time4))
 
-    #subscriptions_collection = collection_of_subscriptions(account_collection)
-    #for i in range(0, 3):
-    #    print(subscriptions_collection[i])
+    print("Creating subscriptions_collection")
+    start_time5 = time.time()
+    subscriptions_collection = collection_of_subscriptions(accounts_collection)
+    end_time5 = time.time()
+    print("Created subscriptions_collection, time:", calculate_execution_time(start_time5,end_time5))
 
-    #artists_collection = collection_of_artists(song_collection)
-    #for i in range(0, 3):
-    #    print(artists_collection[i])
+    print("Creating artists_collection")
+    start_time6 = time.time()
+    artists_collection = collection_of_artists(songs_collection)
+    end_time6 = time.time()
+    print("Created artists_collection, time:", calculate_execution_time(start_time6,end_time6))
 
-    albums_collection = collection_of_albums(song_collection)
+    print("Creating albums_collection")
+    start_time7 = time.time()
+    albums_collection = collection_of_albums(songs_collection)
     for i in range(len(albums_collection)):
         print(albums_collection[i])
+    end_time7 = time.time()
+    print("Created albums_collection, time:", calculate_execution_time(start_time7,end_time7))
+
+    print("Conversions to JSON started!")
+    JSONcollection(songs_collection, "songs_collection.json")
+    print("Conversion to JSON: songs_collection")
+
+    JSONcollection(playlists_collection, "playlists_collection.json")
+    print("Conversion to JSON: playlists_collection")
+
+    JSONcollection(users_collection, "users_collection.json")
+    print("Conversion to JSON: users_collection")
+
+    JSONcollection(accounts_collection, "accounts_collection.json")
+    print("Conversion to JSON: accounts_collection")
+
+    JSONcollection(subscriptions_collection, "subscriptions_collection.json")
+    print("Conversion to JSON: subscriptions_collection")
+
+    JSONcollection(artists_collection, "artists_collection.json")
+    print("Conversion to JSON: artists_collection")
+
+    JSONcollection(albums_collection, "albums_collection.json")
+    print("Conversion to JSON: albums_collection")
+
+
+    print("Conversions to JSON done!")
 
 

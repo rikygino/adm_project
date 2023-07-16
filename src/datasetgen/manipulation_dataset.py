@@ -45,7 +45,7 @@ def sub_dataset(df):
     # Selezione del 30% degli album
     album_list = df['album'].unique()
     num_albums = len(album_list)
-    num_selected_albums = int(np.ceil(num_albums * 0.2))
+    num_selected_albums = int(10) #np.ceil(num_albums * 0.0001)
     selected_albums = pd.Series(album_list).sample(num_selected_albums)
 
     # Filtraggio delle canzoni degli album selezionati
