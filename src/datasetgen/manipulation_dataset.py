@@ -2,6 +2,7 @@ import ast
 import csv
 import json
 
+import numpy as np
 import pandas as pd
 
 
@@ -41,25 +42,22 @@ def standardize_values(value):
 
 
 def sub_dataset(df):
-    # Selezione del 40% degli album
+    # Selezione del 30% degli album
     album_list = df['album'].unique()
     num_albums = len(album_list)
-    num_selected_albums = int(num_albums * 0.1)
-    selected_albums = df[df['album'].isin(pd.Series(album_list).sample(num_selected_albums))]
+    num_selected_albums = int(np.ceil(num_albums * 0.2))
+    selected_albums = pd.Series(album_list).sample(num_selected_albums)
 
-    # Visualizzazione dei risultati
-    #print(selected_albums)
+    # Filtraggio delle canzoni degli album selezionati
+    selected_songs = df[df['album'].isin(selected_albums)]
 
-    return selected_albums
+    return selected_songs
 
 
 def song_date(df):
     # Filter rows based on release_date length less than 10 characters
     mask = df['release_date'].str.len() == 10
     filtered_df = df[mask]
-    #print(filtered_df.shape)
-    # Drop rows with duplicate album_id values
-    filtered_df = filtered_df.drop_duplicates(subset=['album_id'])
 
     return filtered_df
 
@@ -73,6 +71,7 @@ def manage_dataset():
     columns_to_drop = ["artist_ids", "track_number", "disc_number", "energy", "key", "loudness", "mode", "speechiness",
                        "acousticness", "valence", "time_signature", "year", "instrumentalness", "liveness", "tempo"]
     dataset = pd.read_csv(csv_file_path)
+    dataset = sub_dataset(dataset)
     dataset = song_id(dataset)
     dataset = song_date(dataset)
     dataset = album_date(dataset)
@@ -82,11 +81,9 @@ def manage_dataset():
     # Apply standardization function to 'artists'
     dataset['artists'] = dataset['artists'].apply(lambda x: standardize_values(x))
 
-    dataset = sub_dataset(dataset)
-
     dataset.to_csv("../spotify_dataset.csv", index=False)
     #print("csv modified")
-    #print(dataset.shape)
+    print(dataset.shape)
 
 
 artists = {"placeholder": 0}
@@ -134,6 +131,4 @@ def read_music_data():
 
 
 if __name__ == "__main__":
-    #manage_dataset()
-    music = read_music_data()
-    print(artists)
+    manage_dataset()

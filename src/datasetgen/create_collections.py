@@ -356,7 +356,7 @@ if __name__ == "__main__":
     #    print(artists_collection[i])
 
     albums_collection = collection_of_albums(song_collection)
-    for i in range(0, 30):
+    for i in range(len(albums_collection)):
         print(albums_collection[i])
 
 
