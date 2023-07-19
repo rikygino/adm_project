@@ -298,9 +298,8 @@ def get_expiration_date(startingdate):
         new_date = dt + datetime.timedelta(days=365)
 
     formatted_date = new_date.strftime("%Y-%m-%d")
-    dt = dt.strftime("%Y-%m-%d")
 
-    return dt + " " + formatted_date
+    return formatted_date
 
 
 def collection_of_subscriptions(coll_accounts: list[dict]) -> list[dict]:
